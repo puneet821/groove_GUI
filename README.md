@@ -1,6 +1,8 @@
 # 🎧 GROOVECMD — Terminal Music Player
 
-A high-performance, retro-terminal style music streaming platform for personal use. Emulates a classic CRT terminal environment with green-on-black aesthetics, scanlines, and a powerful command-line interface.
+A high-performance, retro-terminal style music streaming platform for personal use. Emulates a sleek Cyber-Terminal environment with premium Blue & Gold aesthetics, scanlines, and a powerful command-line interface.
+
+**Made with ♥ by Puneet**
 
 ## 🚀 How to Run
 1. Open your terminal and navigate to the project directory.
@@ -62,4 +64,4 @@ A high-performance, retro-terminal style music streaming platform for personal u
 
 ---
 
-*Built with ♥ for the OG Terminal vibe.*
+*Built with ♥ by Puneet — Keeping the Terminal vibe alive.*
