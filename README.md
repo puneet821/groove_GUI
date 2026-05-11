@@ -49,6 +49,7 @@ A high-performance, retro-terminal style music streaming platform for personal u
 ### ⚙️ System Commands
 | Command | Description |
 | :--- | :--- |
+| `theme <name>` | Change UI theme: `matrix`, `nebula`, `cyber`, `retro`, `ghost` |
 | `help` / `h` | Display the command reference guide |
 | `clear` / `cls` | Clear the terminal screen |
 | `exit` | Close the session |
@@ -60,6 +61,7 @@ A high-performance, retro-terminal style music streaming platform for personal u
 - **Ghost Protocol Proxy**: A built-in Python proxy server that bypasses CORS and network blocks.
 - **CRT Aesthetics**: High-quality CSS styling including scanlines, CRT flicker, and glassmorphism.
 - **Smart Fallback**: If a song link fails, the player automatically searches and plays a YouTube version without skipping a beat.
+- **Multi-Theme Engine**: Switch between `Matrix`, `Nebula` (Stars), `Cyber` (Waves), and `Retro` themes on the fly.
 - **Zero Ads**: A completely clean, ad-free listening experience.
 
 ---
