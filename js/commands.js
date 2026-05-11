@@ -1,0 +1,205 @@
+/* =============================================
+   commands.js — Command parser & handlers
+   ============================================= */
+
+const Commands = (() => {
+    let lastResults = [];  // Last search results
+
+    const HELP_TEXT = `
+  ┌─────────────────────────────────────────────────────┐
+  │              GROOVECMD — COMMAND REFERENCE           │
+  ├──────────────────┬──────────────────────────────────┤
+  │  PLAYBACK        │                                  │
+  │  play <song>     │  Search & play instantly         │
+  │  play <#>        │  Play from search results        │
+  │  pause           │  Pause / resume toggle           │
+  │  next  / n       │  Next song in queue              │
+  │  prev  / p       │  Previous song                   │
+  │  vol <0-100>     │  Set volume                      │
+  │  shuffle         │  Toggle shuffle mode             │
+  │  repeat          │  Toggle repeat (off/1/all)       │
+  ├──────────────────┼──────────────────────────────────┤
+  │  SEARCH          │                                  │
+  │  search <query>  │  Search JioSaavn                 │
+  │  s <query>       │  Shortcut for search             │
+  │  yt <query>      │  Search & play from YouTube      │
+  ├──────────────────┼──────────────────────────────────┤
+  │  LIBRARY         │                                  │
+  │  add <#>         │  Add result to queue             │
+  │  queue / q       │  Show current queue              │
+  │  np              │  Show now playing                │
+  │  like            │  Like / unlike current song      │
+  │  liked           │  Show liked songs                │
+  │  play liked <#>  │  Play a liked song by number     │
+  ├──────────────────┼──────────────────────────────────┤
+  │  theme <name>   │  Change UI (matrix/nebula/cyber/retro) │
+  │  clear / cls     │  Clear terminal                  │
+  │  help / h        │  Show this help                  │
+  └──────────────────┴──────────────────────────────────┘
+`;
+
+    function decodeHTML(html) {
+        const txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+    function printResults(results) {
+        Terminal.print(`\n  Found ${results.length} results:\n`, 'c');
+        results.forEach((s, i) => {
+            const num    = String(i + 1).padStart(2, ' ');
+            const dur    = fmtDur(s.duration);
+            const title  = truncate(decodeHTML(s.title), 35).padEnd(35);
+            const artist = truncate(decodeHTML(s.artist), 22).padEnd(22);
+            const src    = s.source === 'yt' ? '[YT]' : '[SV]';
+            Terminal.print(`  ${num}.  ${title}  ${artist}  ${dur}  ${src}`, 'w');
+        });
+        Terminal.print('\n  Tip: `play <#>` to play  |  `add <#>` to queue\n', 'gd');
+    }
+
+    function truncate(str, len) {
+        if (!str) return ''.padEnd(len);
+        return str.length > len ? str.slice(0, len - 1) + '…' : str;
+    }
+
+    function fmtDur(sec) {
+        if (!sec) return '--:--';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    async function cmdSearch(query) {
+        if (!query) { Terminal.print('Usage: search <song name>', 'r'); return; }
+        Terminal.print(`  Searching for "${query}"...`, 'gd');
+        try {
+            // Try Saavn first
+            let songs = [];
+            try {
+                songs = await Saavn.searchSongs(query, 10);
+            } catch (e) {
+                Terminal.print('  JioSaavn mirrors busy. Using YouTube engine...', 'y');
+            }
+
+            if (!songs || !songs.length) {
+                const r = await fetch(`/api/yt/search?q=${encodeURIComponent(query)}`);
+                const items = await r.json();
+                songs = items.map(v => ({
+                    id: v.videoId, title: v.title, artist: v.author, source: 'yt', duration: v.lengthSeconds
+                }));
+            }
+
+            if (!songs.length) { Terminal.print('No results found.', 'r'); return; }
+            lastResults = songs;
+            printResults(songs);
+        } catch (e) {
+            Terminal.print(`[ERROR] ${e.message}`, 'r');
+        }
+    }
+
+    async function cmdYT(query) {
+        if (!query) { Terminal.print('Usage: yt <song name>', 'r'); return; }
+        Terminal.print(`  Searching YouTube for "${query}"...`, 'gd');
+        try {
+            const r = await fetch(`/api/yt/search?q=${encodeURIComponent(query)}`);
+            if (!r.ok) throw new Error('YouTube search failed');
+            const items = await r.json();
+            if (!items.length) { Terminal.print('No YouTube results found.', 'r'); return; }
+
+            const ytResults = items.map(v => ({
+                id:       v.videoId,
+                title:    v.title,
+                artist:   v.author,
+                album:    'YouTube',
+                duration: v.lengthSeconds,
+                image:    `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+                url:      `https://www.youtube.com/watch?v=${v.videoId}`,
+                source:   'yt'
+            }));
+
+            lastResults = ytResults;
+            printResults(ytResults);
+        } catch (e) {
+            Terminal.print(`[ERROR] ${e.message}`, 'r');
+        }
+    }
+
+    async function handle(rawCmd) {
+        const parts = rawCmd.trim().split(/\s+/);
+        const cmd   = parts[0].toLowerCase();
+        const args  = parts.slice(1).join(' ');
+        const num   = parseInt(parts[1]);
+
+        switch (cmd) {
+            case 'search': case 's':
+                await cmdSearch(args);
+                break;
+
+            case 'yt':
+                await cmdYT(args);
+                break;
+
+            case 'play': case 'p':
+                if (!args) { Player.togglePause(); break; }
+                
+                if (!isNaN(num) && num >= 1 && num <= lastResults.length) {
+                    await Player.playSong(lastResults[num - 1]);
+                } else {
+                    // Direct search and play (Primary YouTube)
+                    Terminal.print(`  Direct play: "${args}"...`, 'gd');
+                    try {
+                        const r = await fetch(`/api/yt/search?q=${encodeURIComponent(args)}`);
+                        const items = await r.json();
+                        if (items.length > 0) {
+                            const v = items[0];
+                            Player.playSong({
+                                id: v.videoId, title: v.title, artist: v.author, source: 'yt', duration: v.lengthSeconds
+                            });
+                        } else {
+                            Terminal.print('No results found.', 'r');
+                        }
+                    } catch (e) {
+                        Terminal.print(`[ERROR] ${e.message}`, 'r');
+                    }
+                }
+                break;
+
+            case 'pause': case 'resume': Player.togglePause(); break;
+            case 'next': case 'n': Player.next(); break;
+            case 'prev': case 'p': Player.prev(); break;
+            case 'vol': case 'volume':
+                if (isNaN(num)) { Terminal.print('Usage: vol <0-100>', 'r'); break; }
+                Player.setVolume(num);
+                break;
+            case 'shuffle': Player.toggleShuffle(); break;
+            case 'repeat': case 'rep': Player.toggleRepeat(); break;
+            case 'add':
+                if (isNaN(num) || !lastResults[num - 1]) {
+                    Terminal.print('Usage: add <#>  (from search results)', 'r'); break;
+                }
+                Player.addToQueue(lastResults[num - 1]);
+                break;
+            case 'queue': case 'q': Player.showQueue(); break;
+            case 'np': case 'nowplaying': Player.showNowPlaying(); break;
+            case 'like': Player.likeCurrent(); break;
+            case 'liked': Player.showLiked(); break;
+            case 'theme':
+                const themes = ['matrix', 'nebula', 'stars', 'cyber', 'retro', 'ghost'];
+                if (!args || !themes.includes(args.toLowerCase())) {
+                    Terminal.print('Available themes: ' + themes.join(', '), 'y');
+                } else {
+                    const t = args.toLowerCase();
+                    ThemeEngine.set(t === 'stars' ? 'nebula' : t);
+                    Terminal.print(`  Theme switched to: ${args.toUpperCase()}`, 'gb');
+                }
+                break;
+            case 'clear': case 'cls': Terminal.clear(); break;
+            case 'help': case 'h': case '?': Terminal.print(HELP_TEXT, 'gd'); break;
+            case 'quit': case 'exit': Terminal.print('  See ya!', 'y'); break;
+            default:
+                Terminal.print(`  Command not found: "${cmd}". Type \`help\` for commands.`, 'r');
+        }
+    }
+
+    return { handle };
+})();

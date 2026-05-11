@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GROOVECMD — Terminal Music Player</title>
+    <meta name="description" content="Retro terminal-style music player powered by JioSaavn & YouTube">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <div id="terminal-window">
+        <div id="bg-overlay"></div>
+        <div id="theme-bg" class="theme-layer"></div>
+        <!-- Title Bar -->
+        <div id="titlebar">
+            <div class="tb-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+            <span class="tb-title">GROOVECMD v1.0.0 — puneet@music-terminal — bash</span>
+            <span id="clock" class="tb-clock">00:00:00</span>
+        </div>
+        <!-- Status Dashboard -->
+        <div id="status-dashboard">
+            <div class="stat-item"><span class="stat-label">CPU:</span> <span id="stat-cpu">0.0%</span></div>
+            <div class="stat-item"><span class="stat-label">MEM:</span> <span id="stat-mem">0.0MB</span></div>
+            <div class="stat-item"><span class="stat-label">NET:</span> <span id="stat-net">0.0KB/s</span></div>
+            <div class="stat-item"><span class="stat-label">STR:</span> <span id="stat-bitrate">128kbps</span></div>
+            <div class="stat-spacer"></div>
+            <div class="stat-item"><span class="stat-label">MODE:</span> <span class="stat-val gb">TERMINAL_AUDIO</span></div>
+        </div>
+
+        <!-- Main Terminal Area -->
+        <div id="main-container">
+            <!-- Output Area -->
+            <div id="output-area">
+                <div id="output"></div>
+            </div>
+
+            <!-- Side Panel (Visual interest for right side) -->
+            <div id="side-panel">
+                <div class="panel-section">
+                    <div class="panel-header">SYSTEM_LOAD</div>
+                    <div class="panel-stat">
+                        <span>CPU</span>
+                        <div class="bar-bg"><div id="bar-cpu" class="bar-fill" style="width: 40%"></div></div>
+                    </div>
+                    <div class="panel-stat">
+                        <span>MEM</span>
+                        <div class="bar-bg"><div id="bar-mem" class="bar-fill" style="width: 65%"></div></div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-header">NETWORK_FEED</div>
+                    <div id="net-feed" class="panel-log"></div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">SESSION_ID</div>
+                    <div class="panel-val">#GRV-992-PX</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Input Line -->
+        <div id="input-line">
+            <span class="p1">groovecmd</span><span class="p2">@</span><span class="p3">music</span><span class="p4">:</span><span class="p5">~</span><span class="p6">$&nbsp;</span>
+            <input type="text" id="cmd-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>
+        </div>
+
+        <!-- Now Playing Bar -->
+        <div id="now-playing" class="hidden">
+            <div class="np-row top">
+                <span class="np-corner">┌</span>
+                <span class="np-label">── ♫ NOW PLAYING [<span id="np-source">SAAVN</span>] </span>
+                <span class="np-line-fill"></span>
+                <span class="np-corner">┐</span>
+            </div>
+            <div class="np-row mid">
+                <span class="np-bar">│</span>
+                <span class="np-spin" id="np-spin">♪</span>
+                <span id="np-title" class="np-title">---</span>
+                <span class="np-by">by</span>
+                <span id="np-artist" class="np-artist">---</span>
+                <span class="np-spacer"></span>
+                <span class="np-bar">│</span>
+            </div>
+            <div class="np-row ctrl">
+                <span class="np-bar">│</span>
+                <span id="np-icon">▶</span>
+                <span class="np-progress-wrap">
+                    <span id="np-prog">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>
+                </span>
+                <span id="np-time">0:00/0:00</span>
+                <span class="np-div">│</span>
+                <span id="np-vol">VOL:100%</span>
+                <span class="np-div">│</span>
+                <span id="np-shuf" class="off">SHUF:OFF</span>
+                <span class="np-div">│</span>
+                <span id="np-rep" class="off">REP:OFF</span>
+                <span class="np-bar">│</span>
+            </div>
+            <div class="np-row bot">
+                <span class="np-corner">└</span>
+                <span class="np-spectrum" id="np-spectrum"></span>
+                <span class="np-line-fill-full"></span>
+                <span class="np-corner">┘</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden YouTube IFrame Player -->
+    <div id="yt-hidden" style="position:fixed;left:-9999px;bottom:-9999px;width:1px;height:1px;">
+        <div id="yt-player"></div>
+    </div>
+
+    <audio id="audio-el"></audio>
+
+    <script src="js/saavn.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/commands.js"></script>
+    <script src="js/app.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
