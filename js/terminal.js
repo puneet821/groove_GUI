@@ -80,7 +80,7 @@ const Terminal = (() => {
             e.preventDefault();
             // Basic tab autocomplete
             const val = input.value.toLowerCase();
-            const cmds = ['search','play','yt','next','prev','pause','resume','vol','shuffle','repeat','like','liked','np','queue','add','clear','help','quit'];
+            const cmds = ['search','play','yt','next','prev','fwd','back','jump','seek','pause','resume','vol','shuffle','repeat','like','liked','np','queue','add','clear','help','quit'];
             const match = cmds.find(c => c.startsWith(val));
             if (match) input.value = match + ' ';
         }

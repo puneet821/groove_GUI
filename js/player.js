@@ -221,10 +221,31 @@ const Player = (() => {
         Terminal.print(`  + Queued: ${decodeHTML(song.title)}`, 'gd');
     }
 
+    function seek(seconds) {
+        if (!state.current) return;
+        if (state.source === 'yt' && ytReady) {
+            const cur = ytPlayer.getCurrentTime();
+            ytPlayer.seekTo(cur + seconds, true);
+        } else {
+            audio.currentTime += seconds;
+        }
+        updateUI();
+    }
+
+    function jumpTo(seconds) {
+        if (!state.current) return;
+        if (state.source === 'yt' && ytReady) {
+            ytPlayer.seekTo(seconds, true);
+        } else {
+            audio.currentTime = seconds;
+        }
+        updateUI();
+    }
+
     setInterval(() => { if (state.playing) updateUI(); }, 1000);
 
     return {
-        playSong, togglePause, setVolume, next, prev, addToQueue,
+        playSong, togglePause, setVolume, next, prev, addToQueue, seek, jumpTo,
         toggleShuffle: () => { state.shuffle = !state.shuffle; updateUI(); },
         toggleRepeat: () => { 
             const m = ['off', 'one', 'all'];

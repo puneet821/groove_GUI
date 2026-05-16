@@ -15,6 +15,9 @@ const Commands = (() => {
   │  pause           │  Pause / resume toggle           │
   │  next  / n       │  Next song in queue              │
   │  prev  / p       │  Previous song                   │
+  │  fwd / f         │  Forward 10 seconds              │
+  │  back / b        │  Backward 10 seconds             │
+  │  jump <time>     │  Jump to timestamp (1:30 or 90)  │
   │  vol <0-100>     │  Set volume                      │
   │  shuffle         │  Toggle shuffle mode             │
   │  repeat          │  Toggle repeat (off/1/all)       │
@@ -67,6 +70,16 @@ const Commands = (() => {
         const m = Math.floor(sec / 60);
         const s = Math.floor(sec % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
+    }
+
+    function parseTime(str) {
+        if (!str) return null;
+        if (str.includes(':')) {
+            const parts = str.split(':');
+            if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+        }
+        return parseInt(str);
     }
 
     async function cmdSearch(query) {
@@ -167,6 +180,16 @@ const Commands = (() => {
             case 'pause': case 'resume': Player.togglePause(); break;
             case 'next': case 'n': Player.next(); break;
             case 'prev': case 'p': Player.prev(); break;
+            case 'fwd': case 'f': Player.seek(10); break;
+            case 'back': case 'b': Player.seek(-10); break;
+            case 'jump': case 'seek':
+                const sec = parseTime(args);
+                if (isNaN(sec) || sec === null) {
+                    Terminal.print('Usage: jump <time> (e.g. 1:30 or 90)', 'r');
+                } else {
+                    Player.jumpTo(sec);
+                }
+                break;
             case 'vol': case 'volume':
                 if (isNaN(num)) { Terminal.print('Usage: vol <0-100>', 'r'); break; }
                 Player.setVolume(num);
