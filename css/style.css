@@ -68,7 +68,7 @@ html, body {
     width: 100%; height: 100%;
     background: #000;
     font-family: var(--font);
-    font-size: 13px;
+    font-size: 16px;
     color: var(--primary);
     overflow: hidden;
 }
@@ -93,8 +93,19 @@ html, body {
         transparent 60%, rgba(0,0,0,0.7) 100%);
 }
 .theme-layer {
-    position: absolute; inset: 0; pointer-events: none; z-index: 1; /* Above background, below content */
+    position: absolute; inset: 0; pointer-events: none; z-index: 0; /* Below overlay */
     overflow: hidden; opacity: 1;
+}
+
+#bg-overlay {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: rgba(0, 0, 0, 0.65); /* Darkens the animations to prevent overlapping text */
+}
+
+/* Ensure content stays above the theme layer */
+#titlebar, #status-dashboard, #main-container, #input-line, #now-playing {
+    position: relative;
+    z-index: 2;
 }
 
 /* ── Animation: Matrix Rain ── */
@@ -185,7 +196,7 @@ html, body {
     padding: 6px 16px;
     background: rgba(0, 255, 65, 0.05);
     border-bottom: 1px solid rgba(0, 255, 65, 0.1);
-    font-size: 11px;
+    font-size: 13px;
     color: var(--primary-dim);
     flex-shrink: 0;
 }
@@ -207,7 +218,7 @@ html, body {
     flex: 1; display: flex; overflow: hidden;
 }
 #side-panel {
-    width: 240px; border-left: 1px solid rgba(0, 255, 65, 0.1);
+    width: 320px; border-left: 1px solid rgba(0, 255, 65, 0.1);
     background: rgba(0, 255, 65, 0.02);
     display: flex; flex-direction: column; gap: 14px;
     padding: 12px; flex-shrink: 0;
@@ -222,19 +233,16 @@ html, body {
 }
 .panel-section { display: flex; flex-direction: column; gap: 8px; }
 .panel-header {
-    font-size: 10px; color: var(--primary-dim); font-weight: 700;
+    font-size: 12px; color: var(--primary-dim); font-weight: 700;
     letter-spacing: 2px; border-bottom: 1px solid rgba(0, 255, 65, 0.1);
     padding-bottom: 4px;
 }
-.panel-stat { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+.panel-stat { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
 .bar-bg { width: 120px; height: 6px; background: rgba(0, 255, 65, 0.1); border-radius: 3px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--primary); box-shadow: 0 0 8px var(--primary); transition: width 0.5s ease; }
-.panel-log { font-size: 10px; color: var(--primary-dim); height: 60px; overflow: hidden; line-height: 1.4; opacity: 0.6; }
+.panel-log { font-size: 12px; color: var(--primary-dim); height: 60px; overflow: hidden; line-height: 1.4; opacity: 0.6; }
 .panel-val { color: var(--accent); font-weight: 700; letter-spacing: 1px; }
 
-@media (max-width: 600px) {
-    #side-panel { display: none; }
-}
 
 #output-area::-webkit-scrollbar { width: 4px; }
 #output-area::-webkit-scrollbar-thumb { background: var(--primary-dim); border-radius: 2px; }
@@ -271,7 +279,7 @@ html, body {
 
 #cmd-input {
     flex: 1; background: transparent; border: none; outline: none;
-    color: var(--primary); font-family: var(--font); font-size: 13px;
+    color: var(--primary); font-family: var(--font); font-size: 16px;
     caret-color: var(--primary-glow);
     text-shadow: 0 0 6px rgba(0, 255, 65, 0.5);
 }
@@ -281,7 +289,7 @@ html, body {
     flex-shrink: 0;
     padding: 0 16px 8px;
     color: var(--primary);
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1.4;
 }
 #now-playing.hidden { display: none; }
@@ -311,7 +319,7 @@ html, body {
     font-weight: 700;
     text-shadow: var(--glow-text);
     white-space: pre;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 #np-source { color: var(--cyan); font-weight: 700; }
@@ -379,7 +387,7 @@ html, body {
     user-select: none;
 }
 .knob-label {
-    font-size: 9px;
+    font-size: 12px;
     color: var(--primary-dim);
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -387,8 +395,8 @@ html, body {
 }
 .knob {
     position: relative;
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     border: 2px solid var(--primary-dim);
     background: radial-gradient(circle, rgba(0, 255, 65, 0.05) 30%, rgba(0, 0, 0, 0.9) 100%);
@@ -420,7 +428,7 @@ html, body {
     transform: translateX(-50%);
 }
 .knob-value {
-    font-size: 10px;
+    font-size: 13px;
     color: var(--accent);
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -443,7 +451,7 @@ html, body {
     border-radius: 12px;
     color: var(--primary-dim);
     font-family: var(--font);
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     padding: 4px 0;
     cursor: pointer;
@@ -474,13 +482,95 @@ html, body {
 }
 .preset-buttons .q-btn {
     padding: 3px 0;
-    font-size: 8px;
+    font-size: 10px;
     border-radius: 8px;
 }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-    body { font-size: 11px; }
-    #titlebar .tb-title { display: none; }
-    #now-playing { font-size: 10px; }
+    html, body {
+        font-size: 13px;
+    }
+    
+    #titlebar .tb-title {
+        display: none;
+    }
+
+    #status-dashboard {
+        font-size: 11px;
+        gap: 8px;
+        padding: 6px 8px;
+    }
+
+    #eq-toggle-btn {
+        display: inline-block !important;
+        font-weight: bold;
+    }
+
+    /* Transform #side-panel into a sliding drawer on mobile */
+    #side-panel {
+        position: absolute;
+        top: 0;
+        right: -320px; /* Hidden offscreen by default */
+        bottom: 0;
+        width: 290px;
+        z-index: 1000;
+        background: rgba(4, 8, 4, 0.95); /* Opaque background with slight transparency for a sleek terminal overlay */
+        backdrop-filter: blur(8px);
+        border-left: 2px solid var(--primary-dim);
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.8), var(--glow);
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        opacity: 0.98;
+    }
+    
+    body.theme-nebula #side-panel { background: rgba(15, 11, 26, 0.95); }
+    body.theme-cyber #side-panel { background: rgba(10, 15, 20, 0.95); }
+    body.theme-retro #side-panel { background: rgba(26, 19, 12, 0.95); }
+    body.theme-ghost #side-panel { background: rgba(18, 18, 18, 0.95); }
+
+    #side-panel.open {
+        right: 0; /* Slide in */
+    }
+
+    /* Optimize Now Playing UI for small screens */
+    #now-playing {
+        font-size: 11px;
+        padding: 0 8px 6px;
+    }
+
+    .np-progress-wrap {
+        display: none; /* Hide progress bar on mobile to fit time and volume */
+    }
+
+    #np-time {
+        min-width: 60px;
+    }
+
+    #np-vol {
+        min-width: 50px;
+    }
+
+    #np-shuf, #np-rep {
+        display: none; /* Hide shuffle/repeat text on ultra narrow displays if needed, or make them compact */
+    }
+
+    /* Make Knobs responsive and fit two-by-two beautifully */
+    .eq-knobs-grid {
+        gap: 12px;
+        padding: 4px 0;
+    }
+    
+    .knob {
+        width: 64px;
+        height: 64px;
+    }
+
+    .knob-label {
+        font-size: 10px;
+    }
+
+    .knob-value {
+        font-size: 11px;
+    }
 }

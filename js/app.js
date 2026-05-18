@@ -70,25 +70,17 @@ const ThemeEngine = (() => {
         currentTheme = theme;
         clear();
         
-        // Background animations disabled to prevent obscuring content
-        // if (theme === 'matrix') initMatrix();
-        // if (theme === 'nebula') initStars();
+        // Background animations now properly render behind content
+        if (theme === 'matrix') initMatrix();
+        if (theme === 'nebula') initStars();
         if (theme === 'cyber') initWaves();
         if (theme === 'retro') initFlicker();
     }
 
     function initMatrix() {
-        const chars = '01♪♫♩♬';
-        for (let i = 0; i < 25; i++) {
-            const col = document.createElement('div');
-            col.className = 'matrix-column';
-            col.style.left = Math.random() * 100 + 'vw';
-            col.style.animationDuration = Math.random() * 3 + 2 + 's';
-            col.style.animationDelay = Math.random() * 5 + 's';
-            col.textContent = Array(15).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
-            bg.appendChild(col);
-        }
+        // Falling animation removed per user request
     }
+
 
     function initStars() {
         const isNebula = document.body.classList.contains('theme-nebula');
@@ -313,3 +305,22 @@ if (qualityBtnEco)  qualityBtnEco.addEventListener('click', () => selectQuality(
 // Initialize initial dashboard quality
 const initialQuality = localStorage.getItem('groovecmd_quality') || '160kbps';
 selectQuality(initialQuality);
+
+// Mobile EQ Toggle Handler
+document.addEventListener('DOMContentLoaded', () => {
+    const eqBtn = document.getElementById('eq-toggle-btn');
+    const sidePanel = document.getElementById('side-panel');
+    if (eqBtn && sidePanel) {
+        eqBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidePanel.classList.toggle('open');
+        });
+        
+        // Close if tapped outside
+        document.addEventListener('click', (e) => {
+            if (sidePanel.classList.contains('open') && !sidePanel.contains(e.target) && !eqBtn.contains(e.target)) {
+                sidePanel.classList.remove('open');
+            }
+        });
+    }
+});

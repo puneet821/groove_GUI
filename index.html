@@ -35,18 +35,68 @@
             <div class="stat-item"><span class="stat-label">MEM:</span> <span id="stat-mem">0.0MB</span></div>
             <div class="stat-item"><span class="stat-label">NET:</span> <span id="stat-net">0.0KB/s</span></div>
             <div class="stat-item"><span class="stat-label">STR:</span> <span id="stat-bitrate">128kbps</span></div>
-            <div class="stat-spacer"></div>
+            <div class="stat-item" id="eq-toggle-btn" style="cursor: pointer; display: none;"><span class="stat-val gb">[ EQ ]</span></div>
+            <div class="stat-spacer" style="flex: 0 1 auto; width: 10px;"></div>
             <div class="stat-item"><span class="stat-label">MODE:</span> <span class="stat-val gb">TERMINAL_AUDIO</span></div>
         </div>
 
         <!-- Main Terminal Area -->
         <div id="main-container">
+            <!-- Left Column -->
+            <div id="left-column" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
             <!-- Output Area -->
             <div id="output-area">
                 <div id="output"></div>
             </div>
 
-            <!-- Side Panel (Visual interest for right side) -->
+        <!-- Input Line -->
+        <div id="input-line">
+            <span class="p1">groovecmd</span><span class="p2">@</span><span class="p3">music</span><span class="p4">:</span><span class="p5">~</span><span class="p6">$&nbsp;</span>
+            <input type="text" id="cmd-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>
+        </div>
+
+        <!-- Now Playing Bar -->
+        <div id="now-playing" class="hidden">
+            <div class="np-row top">
+                <span class="np-corner">┌</span>
+                <span class="np-label">── ♫ NOW PLAYING [<span id="np-source">SAAVN</span>] </span>
+                <span class="np-line-fill"></span>
+                <span class="np-corner">┐</span>
+            </div>
+            <div class="np-row mid">
+                <span class="np-bar">│</span>
+                <span class="np-spin" id="np-spin">♪</span>
+                <span id="np-title" class="np-title">---</span>
+                <span class="np-by">by</span>
+                <span id="np-artist" class="np-artist">---</span>
+                <span class="np-spacer"></span>
+                <span class="np-bar">│</span>
+            </div>
+            <div class="np-row ctrl">
+                <span class="np-bar">│</span>
+                <span id="np-icon">▶</span>
+                <span class="np-progress-wrap">
+                    <span id="np-prog">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>
+                </span>
+                <span id="np-time">0:00/0:00</span>
+                <span class="np-div">│</span>
+                <span id="np-vol">VOL:100%</span>
+                <span class="np-div">│</span>
+                <span id="np-shuf" class="off">SHUF:OFF</span>
+                <span class="np-div">│</span>
+                <span id="np-rep" class="off">REP:OFF</span>
+                <span class="np-bar">│</span>
+            </div>
+            <div class="np-row bot">
+                <span class="np-corner">└</span>
+                <span class="np-spectrum" id="np-spectrum"></span>
+                <span class="np-line-fill-full"></span>
+                <span class="np-corner">┘</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel (Visual interest for right side) -->
             <div id="side-panel">
                 <div class="panel-section">
                     <div class="panel-header">SYSTEM_LOAD</div>
@@ -127,52 +177,6 @@
                     <div class="panel-val">#GRV-992-PX</div>
                 </div>
 
-            </div>
-        </div>
-
-        <!-- Input Line -->
-        <div id="input-line">
-            <span class="p1">groovecmd</span><span class="p2">@</span><span class="p3">music</span><span class="p4">:</span><span class="p5">~</span><span class="p6">$&nbsp;</span>
-            <input type="text" id="cmd-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>
-        </div>
-
-        <!-- Now Playing Bar -->
-        <div id="now-playing" class="hidden">
-            <div class="np-row top">
-                <span class="np-corner">┌</span>
-                <span class="np-label">── ♫ NOW PLAYING [<span id="np-source">SAAVN</span>] </span>
-                <span class="np-line-fill"></span>
-                <span class="np-corner">┐</span>
-            </div>
-            <div class="np-row mid">
-                <span class="np-bar">│</span>
-                <span class="np-spin" id="np-spin">♪</span>
-                <span id="np-title" class="np-title">---</span>
-                <span class="np-by">by</span>
-                <span id="np-artist" class="np-artist">---</span>
-                <span class="np-spacer"></span>
-                <span class="np-bar">│</span>
-            </div>
-            <div class="np-row ctrl">
-                <span class="np-bar">│</span>
-                <span id="np-icon">▶</span>
-                <span class="np-progress-wrap">
-                    <span id="np-prog">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>
-                </span>
-                <span id="np-time">0:00/0:00</span>
-                <span class="np-div">│</span>
-                <span id="np-vol">VOL:100%</span>
-                <span class="np-div">│</span>
-                <span id="np-shuf" class="off">SHUF:OFF</span>
-                <span class="np-div">│</span>
-                <span id="np-rep" class="off">REP:OFF</span>
-                <span class="np-bar">│</span>
-            </div>
-            <div class="np-row bot">
-                <span class="np-corner">└</span>
-                <span class="np-spectrum" id="np-spectrum"></span>
-                <span class="np-line-fill-full"></span>
-                <span class="np-corner">┘</span>
             </div>
         </div>
     </div>
