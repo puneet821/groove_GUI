@@ -7,7 +7,13 @@ const Saavn = (() => {
 
     function getBestLink(urls) {
         if (!urls || !urls.length) return null;
-        const order = ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'];
+        const pref = localStorage.getItem('groovecmd_quality') || '160kbps';
+        let order = ['320kbps', '160kbps', '96kbps', '48kbps', '12kbps'];
+        if (pref === '160kbps') {
+            order = ['160kbps', '96kbps', '320kbps', '48kbps', '12kbps'];
+        } else if (pref === '96kbps') {
+            order = ['96kbps', '48kbps', '160kbps', '320kbps', '12kbps'];
+        }
         for (const q of order) {
             // API uses both 'url' and 'link' depending on version
             const found = urls.find(u => u.quality === q);
@@ -26,6 +32,19 @@ const Saavn = (() => {
     }
 
     function formatSong(s) {
+        if (s.media_url) {
+            return {
+                id:       s.id,
+                title:    s.song || s.title || 'Unknown',
+                artist:   s.singers || s.primary_artists || 'Unknown Artist',
+                album:    s.album || '',
+                duration: parseInt(s.duration) || 0,
+                image:    s.image || '',
+                url:      `/audio?url=${encodeURIComponent(s.media_url)}`,
+                source:   'saavn',
+                downloadUrls: [{ quality: '320kbps', link: s.media_url }]
+            };
+        }
         const rawUrl = getBestLink(s.downloadUrl || []);
         return {
             id:       s.id,
@@ -37,16 +56,17 @@ const Saavn = (() => {
             duration: parseInt(s.duration) || 0,
             image:    getBestImage(s.image || []),
             url:      rawUrl ? `/audio?url=${encodeURIComponent(rawUrl)}` : null,
-            source:   'saavn'
+            source:   'saavn',
+            downloadUrls: s.downloadUrl || []
         };
     }
 
     async function searchSongs(query, limit = 10) {
         const q = encodeURIComponent(query);
         const urls = [
-            `${BASE}/search/songs?query=${q}&limit=${limit}`, // Proxy
-            `https://saavn.dev/api/search/songs?query=${q}&limit=${limit}`, // Direct
-            `https://jiosaavn-api-2.vercel.app/search/songs?query=${q}&limit=${limit}` // Direct 2
+            `https://saavnapi-nine.vercel.app/result/?query=${q}`, // Cyberboysumanjay (WORKING!)
+            `https://jiosaavn-api-2.vercel.app/search/songs?query=${q}&limit=${limit}`, // Sumitkolhe Vercel fallback
+            `${BASE}/search/songs?query=${q}&limit=${limit}` // Local proxy fallback
         ];
 
         let lastErr = null;
@@ -57,9 +77,9 @@ const Saavn = (() => {
                 const data = await res.json();
 
                 let raw = [];
-                if (data.status === 'SUCCESS' && data.data?.results) raw = data.data.results;
+                if (Array.isArray(data)) raw = data;
+                else if (data.status === 'SUCCESS' && data.data?.results) raw = data.data.results;
                 else if (Array.isArray(data.results)) raw = data.results;
-                else if (Array.isArray(data)) raw = data;
                 else continue;
 
                 const songs = raw.map(formatSong).filter(s => s.url);

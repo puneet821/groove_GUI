@@ -45,6 +45,16 @@ A high-performance, retro-terminal style music streaming platform for personal u
 | `like` | Add the current song to your "Liked" collection |
 | `liked` | Show your list of liked songs |
 | `play liked <#>` | Play a specific liked song (e.g., `play liked 1`) |
+### 🎛️ Equalizer & Audio Core
+| Command | Description |
+| :--- | :--- |
+| `bass <dB>` | Adjust low frequencies (-10 to 10 dB, e.g. `bass 6`) |
+| `treble <dB>` | Adjust high frequencies (-10 to 10 dB, e.g. `treble 4`) |
+| `reverb <0-100>` | Add spacious Convolution Reverb (0 to 100%, e.g. `reverb 40`) |
+| `boost <0-6>` | Pre-amp Master Volume Boost (0 to 6dB, e.g. `boost 3`) |
+| `preset <name>` | Apply preset audio profiles: `flat`, `bassboost`, `vocal`, `hall` |
+| `quality <kbps>` | Set preferred streaming quality: `320`, `160`, `96` |
+| `eq` | Display advanced sound core configuration status |
 
 ### ⚙️ System Commands
 | Command | Description |

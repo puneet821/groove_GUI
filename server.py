@@ -9,7 +9,7 @@ class GrooveCMDHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *args): pass
     
     def fetch_url(self, url, headers=None):
-        h = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        h = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
         if headers: h.update(headers)
         try:
             req = urllib.request.Request(url, headers=h)
@@ -52,21 +52,47 @@ class GrooveCMDHandler(http.server.BaseHTTPRequestHandler):
         if p.path == "/audio":
             u = q.get("url", [None])[0]
             if not u: return self.send_error(400)
-            data = self.fetch_url(u, {"Referer": "https://www.jiosaavn.com/"})
-            if data:
-                self.send_response(200)
-                self.send_header("Content-Type", "audio/mp4")
-                self.send_header("Access-Control-Allow-Origin", "*")
-                self.end_headers()
-                self.wfile.write(data)
+            
+            h = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Referer": "https://www.jiosaavn.com/"
+            }
+            range_header = self.headers.get("Range")
+            if range_header:
+                h["Range"] = range_header
+                
+            try:
+                req = urllib.request.Request(u, headers=h)
+                with urllib.request.urlopen(req, context=ssl_context, timeout=15) as r:
+                    status = r.status if hasattr(r, 'status') else 200
+                    self.send_response(status)
+                    
+                    for key, val in r.getheaders():
+                        if key.lower() in ["content-type", "content-range", "content-length", "accept-ranges"]:
+                            self.send_header(key, val)
+                            
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Access-Control-Allow-Headers", "Range")
+                    self.end_headers()
+                    
+                    while True:
+                        chunk = r.read(8192)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
                 return
-            self.send_error(502); return
+            except Exception as e:
+                self.send_error(502)
+                return
 
         # ── Saavn Proxy ──
         if p.path.startswith("/api/saavn"):
             sub = p.path.replace("/api/saavn", "", 1)
             qs = f"?{p.query}" if p.query else ""
-            data = self.fetch_url(f"https://saavn.dev/api{sub}{qs}")
+            if "search/songs" in sub:
+                data = self.fetch_url(f"https://saavnapi-nine.vercel.app/result/{qs}")
+            else:
+                data = self.fetch_url(f"https://saavnapi-nine.vercel.app{sub}{qs}")
             if data:
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
@@ -84,6 +110,9 @@ class GrooveCMDHandler(http.server.BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             if fp.endswith(".js"): self.send_header("Content-Type", "application/javascript")
             elif fp.endswith(".css"): self.send_header("Content-Type", "text/css")
+            elif fp.endswith(".svg"): self.send_header("Content-Type", "image/svg+xml")
+            elif fp.endswith(".png"): self.send_header("Content-Type", "image/png")
+            elif fp.endswith(".ico"): self.send_header("Content-Type", "image/x-icon")
             self.end_headers()
             with open(fp, "rb") as f: self.wfile.write(f.read())
         else: self.send_error(404)

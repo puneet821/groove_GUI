@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GROOVECMD — Terminal Music Player</title>
     <meta name="description" content="Retro terminal-style music player powered by JioSaavn & YouTube">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 </head>
@@ -21,6 +22,9 @@
                 <span class="dot red"></span>
                 <span class="dot yellow"></span>
                 <span class="dot green"></span>
+            </div>
+            <div class="brand-logo" title="GROOVECMD Logo">
+                <img src="logo.svg" width="16" height="16" alt="GROOVECMD Logo" style="display: block;">
             </div>
             <span class="tb-title">GROOVECMD v1.0.0 — puneet@music-terminal — bash</span>
             <span id="clock" class="tb-clock">00:00:00</span>
@@ -59,6 +63,63 @@
                 <div class="panel-section">
                     <div class="panel-header">NETWORK_FEED</div>
                     <div id="net-feed" class="panel-log"></div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-header">SOUND_EQUALIZER</div>
+                    <div class="eq-knobs-grid">
+                        <div class="knob-wrap">
+                            <span class="knob-label">BASS</span>
+                            <div class="knob" id="knob-bass" data-param="bass" title="Drag vertical to adjust Bass">
+                                <div class="knob-dial"></div>
+                                <div class="knob-marker"></div>
+                            </div>
+                            <span class="knob-value" id="val-bass">0dB</span>
+                        </div>
+                        <div class="knob-wrap">
+                            <span class="knob-label">TREBLE</span>
+                            <div class="knob" id="knob-treble" data-param="treble" title="Drag vertical to adjust Treble">
+                                <div class="knob-dial"></div>
+                                <div class="knob-marker"></div>
+                            </div>
+                            <span class="knob-value" id="val-treble">0dB</span>
+                        </div>
+                        <div class="knob-wrap">
+                            <span class="knob-label">REVERB</span>
+                            <div class="knob" id="knob-reverb" data-param="reverb" title="Drag vertical to adjust Reverb">
+                                <div class="knob-dial"></div>
+                                <div class="knob-marker"></div>
+                            </div>
+                            <span class="knob-value" id="val-reverb">0%</span>
+                        </div>
+                        <div class="knob-wrap">
+                            <span class="knob-label">BOOST</span>
+                            <div class="knob" id="knob-boost" data-param="boost" title="Drag vertical to boost Gain">
+                                <div class="knob-dial"></div>
+                                <div class="knob-marker"></div>
+                            </div>
+                            <span class="knob-value" id="val-boost">0dB</span>
+                        </div>
+                    </div>
+
+                    <div class="preset-selector">
+                        <span class="knob-label">EQ PRESETS</span>
+                        <div class="preset-buttons">
+                            <button class="q-btn" id="pre-btn-flat" data-preset="flat" title="Flat preset">FLAT</button>
+                            <button class="q-btn" id="pre-btn-bass" data-preset="bassboost" title="Bass Boost preset">BASS</button>
+                            <button class="q-btn" id="pre-btn-vocal" data-preset="vocal" title="Vocal preset">VOCAL</button>
+                            <button class="q-btn" id="pre-btn-hall" data-preset="hall" title="Hall Reverb preset">HALL</button>
+                        </div>
+                    </div>
+
+                    <div class="quality-selector">
+                        <span class="knob-label">STREAM QUALITY</span>
+                        <div class="quality-buttons">
+                            <button class="q-btn" id="q-btn-hifi" data-quality="320" title="Hi-Fi (320kbps)">320K</button>
+                            <button class="q-btn active" id="q-btn-mid" data-quality="160" title="Mid (160kbps)">160K</button>
+                            <button class="q-btn" id="q-btn-eco" data-quality="96" title="Eco (96kbps)">96K</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="panel-section">
@@ -121,7 +182,7 @@
         <div id="yt-player"></div>
     </div>
 
-    <audio id="audio-el"></audio>
+    <audio id="audio-el" crossorigin="anonymous"></audio>
 
     <script src="js/saavn.js"></script>
     <script src="js/player.js"></script>

@@ -12,7 +12,11 @@ const Terminal = (() => {
     const unlockAudio = () => {
         const audio = document.getElementById('audio-el');
         if (audio) {
+            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA";
             audio.play().then(() => audio.pause()).catch(() => {});
+        }
+        if (typeof Player !== 'undefined' && Player.initEqualizer) {
+            Player.initEqualizer();
         }
         document.removeEventListener('click', unlockAudio);
         document.removeEventListener('keydown', unlockAudio);

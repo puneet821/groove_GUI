@@ -170,3 +170,146 @@ const BOOT = [
         }, delay);
     });
 })();
+
+/* ── Interactive Equalizer Controls (Circular Knobs & Spotify Pill Buttons) ── */
+function updateKnobUI(knobEl, val) {
+    const valEl = knobEl.parentElement.querySelector('.knob-value');
+    const param = knobEl.getAttribute('data-param');
+    if (valEl) {
+        if (param === 'reverb') {
+            valEl.textContent = val.toFixed(0) + '%';
+        } else {
+            valEl.textContent = (val > 0 ? '+' : '') + val.toFixed(0) + 'dB';
+        }
+    }
+    
+    let deg = 0;
+    if (param === 'reverb') {
+        deg = -135 + (val / 100) * 270;
+    } else if (param === 'boost') {
+        deg = -135 + (val / 6) * 270;
+    } else {
+        deg = (val / 10) * 135;
+    }
+    knobEl.style.transform = `rotate(${deg}deg)`;
+}
+
+function bindKnob(knobId, onUpdate) {
+    const knob = document.getElementById(knobId);
+    if (!knob) return;
+    
+    const param = knob.getAttribute('data-param');
+    let min = -10, max = 10, step = 1;
+    if (param === 'reverb') { min = 0; max = 100; step = 5; }
+    else if (param === 'boost') { min = 0; max = 6; step = 1; }
+    
+    const initialVal = parseFloat(localStorage.getItem(`groovecmd_${param}`) || '0');
+    updateKnobUI(knob, initialVal);
+    
+    // Drag control mouse listener
+    knob.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const startY = e.clientY;
+        const startVal = parseFloat(localStorage.getItem(`groovecmd_${param}`) || '0');
+        
+        function onMouseMove(moveEvent) {
+            const deltaY = startY - moveEvent.clientY;
+            let sensitivity = 0.2;
+            if (param === 'reverb') sensitivity = 1.0;
+            
+            let val = startVal + deltaY * sensitivity;
+            val = Math.max(min, Math.min(max, val));
+            val = Math.round(val / step) * step;
+            
+            updateKnobUI(knob, val);
+            onUpdate(val);
+            
+            // Deactivate preset buttons when tweaked manually
+            document.querySelectorAll('[data-preset]').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+    
+    // Drag control touch listener for mobile/tablets
+    knob.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        e.preventDefault();
+        const startY = e.touches[0].clientY;
+        const startVal = parseFloat(localStorage.getItem(`groovecmd_${param}`) || '0');
+        
+        function onTouchMove(moveEvent) {
+            if (moveEvent.touches.length !== 1) return;
+            const deltaY = startY - moveEvent.touches[0].clientY;
+            let sensitivity = 0.2;
+            if (param === 'reverb') sensitivity = 1.0;
+            
+            let val = startVal + deltaY * sensitivity;
+            val = Math.max(min, Math.min(max, val));
+            val = Math.round(val / step) * step;
+            
+            updateKnobUI(knob, val);
+            onUpdate(val);
+            
+            // Deactivate preset buttons
+            document.querySelectorAll('[data-preset]').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        function onTouchEnd() {
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+        }
+        
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd);
+    }, { passive: false });
+}
+
+function selectQuality(qualityStr) {
+    const val = qualityStr.replace('kbps', '');
+    document.querySelectorAll('.q-btn').forEach(btn => {
+        if (btn.getAttribute('data-quality') === val) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    Player.changeQuality(qualityStr);
+}
+
+// Attach globally for access in commands.js
+window.updateKnobUI = updateKnobUI;
+window.selectQuality = selectQuality;
+
+// Bind all 4 knobs
+bindKnob('knob-bass', (val) => Player.setBass(val));
+bindKnob('knob-treble', (val) => Player.setTreble(val));
+bindKnob('knob-reverb', (val) => Player.setReverb(val));
+bindKnob('knob-boost', (val) => Player.setBoost(val));
+
+// Bind EQ presets
+document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const presetName = btn.getAttribute('data-preset');
+        Player.applyPreset(presetName);
+    });
+});
+
+// Bind Quality Selector buttons
+const qualityBtnHifi = document.getElementById('q-btn-hifi');
+const qualityBtnMid  = document.getElementById('q-btn-mid');
+const qualityBtnEco  = document.getElementById('q-btn-eco');
+
+if (qualityBtnHifi) qualityBtnHifi.addEventListener('click', () => selectQuality('320kbps'));
+if (qualityBtnMid)  qualityBtnMid.addEventListener('click', () => selectQuality('160kbps'));
+if (qualityBtnEco)  qualityBtnEco.addEventListener('click', () => selectQuality('96kbps'));
+
+// Initialize initial dashboard quality
+const initialQuality = localStorage.getItem('groovecmd_quality') || '160kbps';
+selectQuality(initialQuality);
