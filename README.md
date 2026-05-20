@@ -67,6 +67,7 @@ A high-performance, retro-terminal style music streaming platform for personal u
 ---
 
 ## 🌟 Key Features
+- **CyberDeck GUI Mode**: A futuristic, interactive glassmorphic dashboard featuring a spinning vinyl record disc, lyrics teleprompter, responsive mixer, and full playlist navigation.
 - **Dual-Source Engine**: Automatically switches between JioSaavn and YouTube for maximum reliability.
 - **Ghost Protocol Proxy**: A built-in Python proxy server that bypasses CORS and network blocks.
 - **CRT Aesthetics**: High-quality CSS styling including scanlines, CRT flicker, and glassmorphism.
