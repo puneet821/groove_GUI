@@ -1,0 +1,13 @@
+{
+  "appId": "com.puneet.groovecmd",
+  "appName": "GROOVECMD",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "allowNavigation": ["*"],
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

@@ -61,9 +61,12 @@ const Commands = (() => {
             const title  = truncate(decodeHTML(s.title), 35).padEnd(35);
             const artist = truncate(decodeHTML(s.artist), 22).padEnd(22);
             const src    = s.source === 'yt' ? '[YT]' : '[SV]';
-            Terminal.print(`  ${num}.  ${title}  ${artist}  ${dur}  ${src}`, 'w');
+            
+            const rawText = `  ${num}.  ${title}  ${artist}  ${dur}  ${src}`;
+            const rowHTML = `<span class="result-item-link" onclick="Commands.handle('play ${i + 1}')" title="Tap to Play">${rawText}</span>`;
+            Terminal.printHTML(rowHTML, 'w');
         });
-        Terminal.print('\n  Tip: `play <#>` to play  |  `add <#>` to queue\n', 'gd');
+        Terminal.print('\n  Tip: Tap a song to play it instantly! Or type `add <#>` to queue.\n', 'gd');
     }
 
     function truncate(str, len) {

@@ -17,7 +17,9 @@ const Player = (() => {
         repeat:   'off',
         playing:  false,
         source:   'saavn',
-        autoplay: JSON.parse(localStorage.getItem('groovecmd_autoplay') !== 'false')
+        autoplay: JSON.parse(localStorage.getItem('groovecmd_autoplay') !== 'false'),
+        activePlaylistTracks: null,
+        triedUrls: []
     };
 
     audio.volume = state.volume;
@@ -171,6 +173,11 @@ const Player = (() => {
                 btn.classList.remove('active');
             }
         });
+
+        // Sync GUI sliders with the newly applied preset values
+        if (window.App && typeof window.App.syncSlidersWithPlayer === 'function') {
+            window.App.syncSlidersWithPlayer();
+        }
         
         Terminal.print(`  [PRESET] Applied sound profile: ${presetName.toUpperCase()}`, 'c');
     }
@@ -229,6 +236,33 @@ const Player = (() => {
         }
     }
 
+    function cleanSongTitleForSaavn(title) {
+        if (!title) return "";
+        let t = title.toString();
+        // Remove text in parentheses/brackets that contain fluff keywords
+        t = t.replace(/\s*[\(\[][^\]\)]*\b(feat|ft|with|prod|remix|mix|cover|version|remaster|remastered|mono|stereo|radio edit|original mix|video|lyrics|lyric|audio|live|recorded|from|theme|soundtrack|ost)\b[^\]\)]*[\)\]]/gi, "");
+        // If the whole parentheses/bracket is just extra information, remove it
+        t = t.replace(/\s*[\(\[][^\]\)]*(feat|ft|with|prod|original|remastered|version|edit|live|session|acoustic|instrumental|karaoke|tribute|cover)[^\]\)]*[\)\]]/gi, "");
+        // Remove trailing hyphens followed by common keywords
+        t = t.replace(/\s*-\s*\b(feat|ft|with|prod|remix|mix|cover|version|remaster|remastered|mono|stereo|radio edit|original mix|video|lyrics|lyric|audio|live|recorded|from|instrumental|karaoke|acoustic)\b.*$/gi, "");
+        // Remove standard trailing bracket parts completely if they seem like metadata
+        t = t.replace(/\s*[\(\[].*[\)\]]$/g, "");
+        // Clean special characters but keep alphanumeric and spaces
+        t = t.replace(/[^\w\s\d]/g, " ");
+        t = t.replace(/\s+/g, " ").trim();
+        return t || title;
+    }
+
+    function cleanArtistForSaavn(artist) {
+        if (!artist) return "";
+        // Take the first artist before comma, &, or "and"
+        let a = artist.toString().split(/,|\s+&\s+|\s+and\s+|;/gi)[0];
+        // Remove extra info
+        a = a.replace(/[^\w\s\d]/g, " ");
+        a = a.replace(/\s+/g, " ").trim();
+        return a;
+    }
+
     function decodeHTML(html) {
         const txt = document.createElement('textarea');
         txt.innerHTML = html;
@@ -243,6 +277,7 @@ const Player = (() => {
             events: {
                 onReady: () => { 
                     ytReady = true; 
+                    window.ytReady = true;
                     ytPlayer.setVolume(state.volume * 100);
                     console.log('YT Player Ready');
                 },
@@ -257,6 +292,7 @@ const Player = (() => {
                 }
             }
         });
+        window.ytPlayer = ytPlayer;
     };
 
     function fmtTime(sec) {
@@ -301,6 +337,11 @@ const Player = (() => {
         const repMap = { off: 'OFF', one: '1', all: 'ALL' };
         repEl.textContent = `REP:${repMap[state.repeat]}`;
         repEl.className = state.repeat !== 'off' ? 'on' : 'off';
+
+        // High-fidelity cockpit UI sync hook
+        if (window.App && window.App.syncGuiPlayingUI) {
+            window.App.syncGuiPlayingUI();
+        }
     }
 
     function truncate(str, len) {
@@ -309,6 +350,100 @@ const Player = (() => {
 
     async function playSong(song) {
         if (!song) return;
+
+        state.triedUrls = []; // Reset tried URLs for the new song!
+        if (song.url) {
+            state.triedUrls.push(song.url);
+        }
+
+        if (state.activePlaylistTracks && !state.activePlaylistTracks.some(s => s.id === song.id)) {
+            state.activePlaylistTracks = null;
+        }
+
+        // Spotify Bridge: Dynamically source playable stream from JioSaavn or YouTube
+        if (song.source === 'spotify') {
+            Terminal.print(`\n  [SPOTIFY BRIDGE] Sourcing playable stream for:`, 'gb');
+            Terminal.print(`     Title  : ${song.title}`, 'y');
+            Terminal.print(`     Artist : ${song.artist}`, 'y');
+            Terminal.print(`     Please wait while we connect the frequency...\n`, 'gd');
+
+            const titleEl = document.getElementById('gui-song-title');
+            const artistEl = document.getElementById('gui-song-artist');
+            if (titleEl) titleEl.textContent = "Connecting stream...";
+            if (artistEl) artistEl.textContent = `${song.title} - ${song.artist}`;
+
+            const cleanTitle = cleanSongTitleForSaavn(song.title);
+            const cleanArtist = cleanArtistForSaavn(song.artist);
+
+            const saavnQueries = [
+                `${cleanTitle} ${cleanArtist}`, // 1. Clean title + clean artist
+                cleanTitle,                     // 2. Clean title only
+                `${song.title} ${cleanArtist}`, // 3. Raw title + clean artist
+                song.title,                     // 4. Raw title only
+                `${song.title} ${song.artist}`  // 5. Raw title + raw artist
+            ];
+
+            // Remove duplicates and empty/short queries
+            const uniqueQueries = [...new Set(saavnQueries.filter(q => q && q.trim().length > 1))];
+            let saavnResults = null;
+
+            // Try JioSaavn search retry sequence
+            for (const q of uniqueQueries) {
+                try {
+                    Terminal.print(`  [SPOTIFY BRIDGE] Sourcing JioSaavn stream with query: "${q}"...`, 'gd');
+                    if (typeof Saavn !== 'undefined' && typeof Saavn.searchSongs === 'function') {
+                        const results = await Saavn.searchSongs(q, 5);
+                        if (results && results.length > 0) {
+                            saavnResults = results;
+                            Terminal.print(`  [SPOTIFY BRIDGE] JioSaavn match found with query: "${q}"`, 'gb');
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.log(`JioSaavn search query "${q}" failed:`, e);
+                }
+            }
+
+            // 1. If JioSaavn matched, play Saavn stream!
+            if (saavnResults && saavnResults.length > 0) {
+                let matched = saavnResults[0];
+                
+                // Select result with closest artist overlap if multiple matches exist
+                if (saavnResults.length > 1) {
+                    const artistLower = song.artist.toLowerCase();
+                    const found = saavnResults.find(r => 
+                        r.artist.toLowerCase().includes(artistLower) || 
+                        artistLower.includes(r.artist.toLowerCase())
+                    );
+                    if (found) matched = found;
+                }
+                
+                const merged = {
+                    ...matched,
+                    id: song.id, // KEEP THE ORIGINAL SPOTIFY ID!
+                    title: song.title,
+                    artist: song.artist,
+                    image: song.image || matched.image || 'logo.svg',
+                    source: 'saavn',
+                    saavnId: matched.id,
+                    originalSource: 'spotify' // Mark original source to prevent YouTube fallback later
+                };
+                playSong(merged);
+                return;
+            }
+
+            // JioSaavn empty. Spotify references are strictly bound to JioSaavn plays!
+            Terminal.print(`  [SPOTIFY BRIDGE] JioSaavn was unable to match "${song.title}" by ${song.artist}. Skipping to next song...`, 'r');
+            if (titleEl) titleEl.textContent = "Unmatched Track";
+            if (artistEl) artistEl.textContent = `${song.title} - JioSaavn Only`;
+            
+            // Wait 2 seconds so the user can read the error message, then transition to next song!
+            setTimeout(() => {
+                next();
+            }, 2000);
+            return;
+        }
+
         if (state.current && state.current.id !== song.id) state.history.push(state.current);
 
         state.current = song;
@@ -329,7 +464,8 @@ const Player = (() => {
             }
             audio.pause();
             audio.src = '';
-            ytPlayer.loadVideoById(song.id);
+            // Load using YouTube video ID if available, otherwise fallback to id
+            ytPlayer.loadVideoById(song.ytVideoId || song.id);
             ytPlayer.playVideo();
             state.playing = true;
         } else {
@@ -382,8 +518,12 @@ const Player = (() => {
                 if (items && items.length > 0) {
                     const v = items[0];
                     await playSong({
-                        id: v.videoId || v.id, title: v.title, artist: v.author || v.authorName || artist,
-                        source: 'yt', duration: v.lengthSeconds || v.duration
+                        id: song.id, // Preserve original (Spotify) ID
+                        ytVideoId: v.videoId || v.id,
+                        title: v.title,
+                        artist: v.author || v.authorName || artist,
+                        source: 'yt',
+                        duration: v.lengthSeconds || v.duration
                     });
                     return;
                 }
@@ -392,9 +532,43 @@ const Player = (() => {
         Terminal.print('  [ERROR] All fallback sources failed. Try another song or check your network.', 'r');
     }
 
-    audio.addEventListener('error', () => {
+    audio.addEventListener('error', async () => {
         if (state.current && state.current.source === 'saavn') {
-            fallbackToYouTube(state.current);
+            // Check if there are other download URLs we can try
+            const urls = state.current.downloadUrls || [];
+            if (urls.length > 0) {
+                // Find all URLs that we haven't tried yet
+                const untried = urls.filter(u => {
+                    const fullUrl = `/audio?url=${encodeURIComponent(u.url || u.link)}`;
+                    return !state.triedUrls.includes(fullUrl);
+                });
+                
+                if (untried.length > 0) {
+                    // Try the next best one
+                    const nextQuality = untried[0];
+                    const nextUrl = `/audio?url=${encodeURIComponent(nextQuality.url || nextQuality.link)}`;
+                    state.triedUrls.push(nextUrl);
+                    
+                    Terminal.print(`  [AUDIO ERROR] Stream failed. Retrying with alternative quality: ${nextQuality.quality}...`, 'y');
+                    audio.src = nextUrl;
+                    try {
+                        await audio.play();
+                        state.playing = true;
+                        updateUI();
+                        return; // Successfully retried and playing!
+                    } catch (e) {
+                        console.log("Alternative quality retry failed:", e);
+                    }
+                }
+            }
+            
+            // If all JioSaavn stream qualities failed, check if it's a Spotify track
+            if (state.current.originalSource === 'spotify') {
+                Terminal.print(`  [AUDIO ERROR] All JioSaavn stream qualities failed for "${state.current.title}". Skipping to next track.`, 'r');
+                next();
+            } else {
+                fallbackToYouTube(state.current);
+            }
         }
     });
 
@@ -440,8 +614,8 @@ const Player = (() => {
             }
         }
         
-        // 3. YouTube Fallback: If both fail, search YouTube for artist hits
-        if (recommendedSongs.length === 0) {
+        // 3. YouTube Fallback: If both fail, search YouTube for artist hits (only if NOT a Spotify track)
+        if (recommendedSongs.length === 0 && lastSong.originalSource !== 'spotify') {
             try {
                 const searchQ = `${lastSong.artist.split(',')[0].trim()} hits`;
                 const r = await fetch(`/api/yt/search?q=${encodeURIComponent(searchQ)}`);
@@ -502,6 +676,21 @@ const Player = (() => {
     function next() {
         if (state.queue.length > 0) {
             playSong(state.queue.shift());
+            if (window.App && window.App.syncGuiLists) window.App.syncGuiLists();
+        } else if (state.activePlaylistTracks && state.activePlaylistTracks.length > 0 && state.current) {
+            const idx = state.activePlaylistTracks.findIndex(s => s.id === state.current.id);
+            if (idx !== -1 && idx + 1 < state.activePlaylistTracks.length) {
+                playSong(state.activePlaylistTracks[idx + 1]);
+            } else if (idx !== -1 && idx + 1 >= state.activePlaylistTracks.length) {
+                if (state.repeat === 'all' || state.repeat === 'one') {
+                    playSong(state.activePlaylistTracks[0]);
+                } else {
+                    Terminal.print('  Playlist ended.', 'gd');
+                }
+            } else {
+                if (state.autoplay) playSimilarRadio();
+                else Terminal.print('  Queue ended.', 'gd');
+            }
         } else if (state.autoplay && state.current) {
             playSimilarRadio();
         } else {
@@ -510,12 +699,40 @@ const Player = (() => {
     }
 
     function prev() {
+        if (state.activePlaylistTracks && state.activePlaylistTracks.length > 0 && state.current) {
+            const idx = state.activePlaylistTracks.findIndex(s => s.id === state.current.id);
+            if (idx > 0) {
+                playSong(state.activePlaylistTracks[idx - 1]);
+                return;
+            } else if (idx === 0) {
+                if (state.repeat === 'all' || state.repeat === 'one') {
+                    playSong(state.activePlaylistTracks[state.activePlaylistTracks.length - 1]);
+                } else {
+                    playSong(state.activePlaylistTracks[0]);
+                }
+                return;
+            }
+        }
         if (state.history.length > 0) playSong(state.history.pop());
     }
 
     function addToQueue(song) {
         state.queue.push(song);
         Terminal.print(`  + Queued: ${decodeHTML(song.title)}`, 'gd');
+        if (window.App && window.App.syncGuiLists) {
+            window.App.syncGuiLists();
+        }
+    }
+
+    function playFromQueue(idx) {
+        if (state.queue[idx]) {
+            const song = state.queue[idx];
+            state.queue.splice(0, idx + 1); // Remove this song and all before it
+            if (window.App && window.App.syncGuiLists) {
+                window.App.syncGuiLists();
+            }
+            playSong(song);
+        }
     }
 
     function seek(seconds) {
@@ -559,17 +776,59 @@ const Player = (() => {
 
     return {
         playSong, togglePause, setVolume, next, prev, addToQueue, seek, jumpTo, prepareForPlayback,
+        setActivePlaylistTracks: (tracks) => { state.activePlaylistTracks = tracks; },
+        getActivePlaylistTracks: () => state.activePlaylistTracks,
         toggleShuffle: () => { state.shuffle = !state.shuffle; updateUI(); },
         toggleRepeat: () => { 
             const m = ['off', 'one', 'all'];
             state.repeat = m[(m.indexOf(state.repeat) + 1) % 3];
             updateUI();
         },
-        likeCurrent: () => { Terminal.print('  ♥ Liked!', 'r'); },
+        likeCurrent: () => {
+            if (!state.current) return;
+            const isLiked = state.liked.some(s => s.id === state.current.id);
+            if (isLiked) {
+                state.liked = state.liked.filter(s => s.id !== state.current.id);
+                localStorage.setItem('groovecmd_liked', JSON.stringify(state.liked));
+                Terminal.print(`  💔 Unliked: ${decodeHTML(state.current.title)}`, 'r');
+            } else {
+                state.liked.push(state.current);
+                localStorage.setItem('groovecmd_liked', JSON.stringify(state.liked));
+                Terminal.print(`  ❤️ Liked: ${decodeHTML(state.current.title)}`, 'r');
+            }
+            updateUI();
+            if (window.App && window.App.syncGuiLists) {
+                window.App.syncGuiLists();
+            }
+        },
         showNowPlaying: () => { updateUI(); },
-        showQueue: () => { Terminal.print(`  Queue: ${state.queue.length} songs`, 'c'); },
-        showLiked: () => { Terminal.print('  No liked songs yet.', 'gd'); },
+        showQueue: () => {
+            if (state.queue.length === 0) {
+                Terminal.print('  Queue is empty.', 'gd');
+            } else {
+                Terminal.print(`\n  Queue list (${state.queue.length} songs):`, 'c');
+                state.queue.forEach((s, idx) => {
+                    Terminal.print(`    ${idx + 1}. ${decodeHTML(s.title)} by ${decodeHTML(s.artist)} [${s.source.toUpperCase()}]`, 'w');
+                });
+                Terminal.print('', 'gd');
+            }
+        },
+        showLiked: () => {
+            if (state.liked.length === 0) {
+                Terminal.print('  No liked songs in the vault yet.', 'gd');
+            } else {
+                Terminal.print(`\n  Saved Tapes Vault (${state.liked.length} songs):`, 'r');
+                state.liked.forEach((s, idx) => {
+                    Terminal.print(`    ${idx + 1}. ${decodeHTML(s.title)} by ${decodeHTML(s.artist)} [${s.source.toUpperCase()}]`, 'w');
+                });
+                Terminal.print('', 'gd');
+            }
+        },
         getState: () => state,
-        setBass, setTreble, setReverb, setBoost, applyPreset, changeQuality, initEqualizer
+        setBass, setTreble, setReverb, setBoost, applyPreset, changeQuality, initEqualizer, playFromQueue
     };
 })();
+
+// Attach to window for global access
+window.Player = Player;
+

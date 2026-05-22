@@ -90,8 +90,31 @@ const Terminal = (() => {
         }
     });
 
-    /* Always refocus input on body click */
-    document.addEventListener('click', () => focus());
+    function fillInput(str) {
+        input.value = str;
+        focus();
+        // Position caret at end
+        setTimeout(() => {
+            input.selectionStart = input.selectionEnd = input.value.length;
+        }, 10);
+    }
 
-    return { print, printHTML, clear, scrollToBottom, focus };
+    /* Always refocus input on body click, but prevent on mobile when touching knobs, presets, or buttons */
+    document.addEventListener('click', (e) => {
+        // Mobile layout check
+        if (window.innerWidth <= 768) {
+            const isInteractive = e.target.closest('button, .knob, input, a, .result-item-link, #side-panel, #eq-toggle-btn');
+            if (!isInteractive && (e.target.closest('#output-area') || e.target.closest('#input-line') || e.target.closest('#main-container'))) {
+                focus();
+            }
+        } else {
+            // Desktop: focus unless clicking interactive sidebar elements
+            const isInteractive = e.target.closest('button, .knob, input, a, #side-panel');
+            if (!isInteractive) {
+                focus();
+            }
+        }
+    });
+
+    return { print, printHTML, clear, scrollToBottom, focus, fillInput };
 })();

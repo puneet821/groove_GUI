@@ -64,9 +64,9 @@ const Saavn = (() => {
     async function searchSongs(query, limit = 10) {
         const q = encodeURIComponent(query);
         const urls = [
-            `https://saavnapi-nine.vercel.app/result/?query=${q}`, // Cyberboysumanjay (WORKING!)
-            `https://jiosaavn-api-2.vercel.app/search/songs?query=${q}&limit=${limit}`, // Sumitkolhe Vercel fallback
-            `${BASE}/search/songs?query=${q}&limit=${limit}` // Local proxy fallback
+            `${BASE}/search/songs?query=${q}&limit=${limit}`, // Local proxy (WITH SERVER-SIDE FAILOVER POOL - RECOMMENDED!)
+            `https://saavnapi-nine.vercel.app/result/?query=${q}`, // Cyberboysumanjay direct fallback
+            `https://jiosaavn-api-2.vercel.app/search/songs?query=${q}&limit=${limit}` // Sumitkolhe Vercel fallback
         ];
 
         let lastErr = null;
@@ -93,3 +93,7 @@ const Saavn = (() => {
 
     return { searchSongs, formatSong };
 })();
+
+// Attach to window for global access
+window.Saavn = Saavn;
+

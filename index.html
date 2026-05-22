@@ -7,9 +7,43 @@
     <meta name="description" content="Retro terminal-style music player powered by JioSaavn & YouTube">
     <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Immersive Boot Selector Screen -->
+    <div id="boot-selector" class="boot-screen">
+        <div class="boot-grid-bg"></div>
+        <div class="boot-container">
+            <div class="boot-header">
+                <div class="boot-logo">
+                    <img src="logo.svg" width="40" height="40" alt="GROOVECMD Logo">
+                </div>
+                <div class="boot-title">GROOVECMD // SYSTEM_BOOT_DECK</div>
+                <div class="boot-subtitle">SELECT INTERFACE ARCHITECTURE:</div>
+            </div>
+            <div class="boot-options">
+                <div class="boot-card" id="boot-opt-cli" onclick="App.bootToMode('terminal')" title="Select retro_terminal.exe">
+                    <div class="card-icon">⌨️</div>
+                    <div class="card-title">retro_terminal.exe</div>
+                    <div class="card-desc">High-efficiency command-line CRT terminal. Command console & raw ASCII spectrum analyzer.</div>
+                    <div class="card-shortcut">PRESS KEY [ T ]</div>
+                </div>
+                <div class="boot-card" id="boot-opt-gui" onclick="App.bootToMode('gui')" title="Select cyber_deck.gui">
+                    <div class="card-icon">🎛️</div>
+                    <div class="card-title">cyber_deck.gui</div>
+                    <div class="card-desc">Futuristic glassmorphic instrument deck. Album vinyl, digital cassettes library, mixer dashboard & scrollable teleprompter.</div>
+                    <div class="card-shortcut">PRESS KEY [ G ]</div>
+                </div>
+            </div>
+            <div class="boot-footer">
+                <label class="remember-checkbox-label">
+                    <input type="checkbox" id="remember-boot-choice" checked>
+                    Remember selection on startup (click titlebar logo to reset choice)
+                </label>
+            </div>
+        </div>
+    </div>
+
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
@@ -23,10 +57,14 @@
                 <span class="dot yellow"></span>
                 <span class="dot green"></span>
             </div>
-            <div class="brand-logo" title="GROOVECMD Logo">
+            <div class="brand-logo" title="GROOVECMD Logo — Click to reset Boot Choice" onclick="App.resetBootChoice()" style="cursor: pointer;">
                 <img src="logo.svg" width="16" height="16" alt="GROOVECMD Logo" style="display: block;">
             </div>
             <span class="tb-title">GROOVECMD v1.0.0 — puneet@music-terminal — bash</span>
+            <div class="layout-toggle-container">
+                <button class="layout-toggle-btn active" id="btn-layout-cli" onclick="App.setMode('terminal')" title="Switch to CLI Mode">⌨️ CLI</button>
+                <button class="layout-toggle-btn" id="btn-layout-gui" onclick="App.setMode('gui')" title="Switch to GUI Mode">🎛️ GUI</button>
+            </div>
             <span id="clock" class="tb-clock">00:00:00</span>
         </div>
         <!-- Status Dashboard -->
@@ -48,6 +86,18 @@
             <div id="output-area">
                 <div id="output"></div>
             </div>
+
+        <!-- Mobile Keyboard Toolbar / Touch Shortcuts -->
+        <div id="mobile-shortcut-bar">
+            <button class="shortcut-pill" onclick="Commands.handle('help')">[ HELP ]</button>
+            <button class="shortcut-pill" onclick="Terminal.fillInput('search ')">[ SEARCH ]</button>
+            <button class="shortcut-pill" onclick="Terminal.fillInput('yt ')">[ YT_SEARCH ]</button>
+            <button class="shortcut-pill" onclick="Commands.handle('play')">[ PAUSE ]</button>
+            <button class="shortcut-pill" onclick="Commands.handle('next')">[ NEXT ]</button>
+            <button class="shortcut-pill" onclick="Commands.handle('radio')">[ AUTO_RADIO ]</button>
+            <button class="shortcut-pill" onclick="ThemeEngine.cycle()">[ THEME ]</button>
+            <button class="shortcut-pill" onclick="Commands.handle('clear')">[ CLEAR ]</button>
+        </div>
 
         <!-- Input Line -->
         <div id="input-line">
@@ -178,6 +228,276 @@
                 </div>
 
             </div>
+        </div>
+
+        <!-- CyberDeck GUI Mode Dashboard -->
+        <div id="cyber-deck-dashboard" class="modern-gui">
+            <!-- Left Sidebar Navigation -->
+            <aside class="gui-sidebar">
+                <div class="sidebar-header">
+                    <button class="menu-hamburger-btn" title="Menu" style="font-size: 20px; font-weight: 300;">≡</button>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" onclick="App.switchGuiTab('scanner'); return false;">Main</a>
+                    <a href="#" class="nav-item" onclick="App.switchGuiTab('vault'); return false;">Radio</a>
+                    <a href="#" class="nav-item" onclick="App.switchGuiTab('decoder'); return false;">Podcasts</a>
+                    <a href="#" class="nav-item" onclick="App.switchGuiTab('mixer'); return false;">Equalizer</a>
+                </nav>
+
+                <div class="sidebar-section">
+                    <span class="section-title">My music</span>
+                    <ul class="sidebar-links">
+                        <li><a href="#" onclick="App.switchGuiTab('vault'); return false;">Tracks</a></li>
+                        <li><a href="#" onclick="App.switchGuiTab('vault'); return false;">Albums</a></li>
+                        <li><a href="#" onclick="App.switchGuiTab('vault'); return false;">Artists</a></li>
+                        <li><a href="#" onclick="App.switchGuiTab('vault'); return false;">Playlists</a></li>
+                        <li><a href="#" onclick="App.switchGuiTab('vault'); return false;">Files</a></li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-footer">
+                    <a href="#" class="footer-item" onclick="App.switchGuiTab('mixer'); return false;">Setting</a>
+                    <a href="#" class="footer-item" onclick="App.resetBootChoice(); return false;">Log out</a>
+                </div>
+            </aside>
+
+            <!-- Center Column: Scrollable Main Content -->
+            <main class="gui-main-content">
+                <!-- Search & Importer Sticky Header -->
+                <header class="main-header">
+                    <!-- Dynamic Search Cockpit -->
+                    <div class="header-search-wrap">
+                        <span class="search-icon" style="font-size: 16px; opacity: 0.7;">🔍</span>
+                        <input type="text" id="gui-search-input" placeholder="Search" autocomplete="off">
+                        <select id="gui-search-provider" onchange="document.getElementById('gui-search-btn').click()" class="gui-search-provider">
+                            <option value="saavn">JioSaavn</option>
+                            <option value="yt">YouTube</option>
+                        </select>
+                        <button class="gui-search-trigger-btn" id="gui-search-btn" style="display: none;">SCAN</button>
+                    </div>
+
+                    <!-- Spotify Importer Cockpit -->
+                    <div class="header-import-wrap">
+                        <input type="text" id="gui-spotify-input" placeholder="Paste Spotify Playlist URL..." autocomplete="off">
+                        <button class="gui-spotify-trigger-btn" id="gui-spotify-btn" onclick="App.importSpotifyPlaylist()">⚡ IMPORT</button>
+                    </div>
+                </header>
+
+                <!-- Scrollable Content Area -->
+                <div class="main-scrollable-container">
+                    <!-- Tab Panel 1: Discover & Main Home -->
+                    <div class="gui-tab-panel active" id="panel-scanner">
+                        
+                        <h1 class="page-main-title">Main</h1>
+
+                        <!-- Featured Hero Billie Eilish Banner -->
+                        <div class="featured-hero-banner">
+                            <div class="hero-content">
+                                <span class="hero-artist-label">Billie Eilish</span>
+                                <h1 class="hero-song-title">What Was I Made For?</h1>
+                                <button class="hero-listen-btn" onclick="App.playFeaturedSong();">
+                                    <span class="hero-play-icon">▶</span> Listen now
+                                </button>
+                            </div>
+                            <div class="hero-overlay-art">
+                                <img src="logo.svg" alt="Featured artwork" style="background: rgba(0,0,0,0.5); padding: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Recommendations Section: Resonator Related Songs -->
+                        <div class="discover-section" id="gui-resonator-recommendations" style="display: none;">
+                            <h3 class="discover-section-title">🧠 RESONATOR SUGGESTIONS (More Like This)</h3>
+                            <div class="discover-songs-grid" id="discover-related-songs">
+                                <!-- Dynamic related cards will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Transmission Decks Curated Playlists -->
+                        <div class="discover-section">
+                            <div class="discover-section-header">
+                                <h3 class="discover-section-title">⚡ Playlists for you</h3>
+                                <a href="#" class="section-view-all" onclick="return false;">View all</a>
+                            </div>
+                            <div class="discover-playlist-grid" id="discover-playlists">
+                                <!-- Dynamic playlists will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Saved Frequency Decks (Saved Spotify Playlists) -->
+                        <div class="discover-section" id="gui-saved-playlists-section" style="display: none;">
+                            <h3 class="discover-section-title">💾 Saved Spotify Decks</h3>
+                            <div class="discover-playlist-grid" id="gui-saved-playlists">
+                                <!-- Dynamic saved playlists will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Trending Curated Recommendations -->
+                        <div class="discover-section">
+                            <div class="discover-section-header">
+                                <h3 class="discover-section-title">🔥 You may also like</h3>
+                                <a href="#" class="section-view-all" onclick="return false;">View all</a>
+                            </div>
+                            <div class="discover-songs-grid" id="discover-trending-songs">
+                                <!-- Dynamic song cards will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Panel 2: Vault (Queue & Saved Library) -->
+                    <div class="gui-tab-panel" id="panel-vault">
+                        <div class="vault-columns">
+                            <!-- Left Sub-column: Queue Cassettes -->
+                            <div class="vault-column">
+                                <h4>[ ACTIVE_PLAYLIST_QUEUE ]</h4>
+                                <div class="cassette-list" id="gui-queue-list">
+                                    <div class="gui-panel-empty-text">Queue is empty.</div>
+                                </div>
+                            </div>
+                            <!-- Right Sub-column: Saved Tapes (Liked Library) -->
+                            <div class="vault-column">
+                                <h4>[ SAVED_TAPES_VAULT ]</h4>
+                                <div class="cassette-grid" id="gui-liked-list">
+                                    <div class="gui-panel-empty-text">No saved tapes in the vault.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Panel 3: Decoder (Real-time Lyrics) -->
+                    <div class="gui-tab-panel" id="panel-decoder">
+                        <div class="lyrics-teleprompter" id="gui-lyrics-container">
+                            <div class="gui-panel-empty-text">Lyrics receiver offline. Start playback.</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Panel 4: Mixer (Equalizer & Configuration) -->
+                    <div class="gui-tab-panel" id="panel-mixer">
+                        <div class="gui-mixer-hud">
+                            <div class="gui-mixer-knobs">
+                                <div class="mixer-knob-cell">
+                                    <span class="mixer-label">BASS</span>
+                                    <input type="range" class="gui-mixer-slider" id="gui-slider-bass" min="-10" max="10" step="1" value="0">
+                                    <span class="mixer-val" id="gui-val-bass">0dB</span>
+                                </div>
+                                <div class="mixer-knob-cell">
+                                    <span class="mixer-label">TREBLE</span>
+                                    <input type="range" class="gui-mixer-slider" id="gui-slider-treble" min="-10" max="10" step="1" value="0">
+                                    <span class="mixer-val" id="gui-val-treble">0dB</span>
+                                </div>
+                                <div class="mixer-knob-cell">
+                                    <span class="mixer-label">REVERB SPACE</span>
+                                    <input type="range" class="gui-mixer-slider" id="gui-slider-reverb" min="0" max="100" step="5" value="0">
+                                    <span class="mixer-val" id="gui-val-reverb">0%</span>
+                                </div>
+                                <div class="mixer-knob-cell">
+                                    <span class="mixer-label">PRE-AMP BOOST</span>
+                                    <input type="range" class="gui-mixer-slider" id="gui-slider-boost" min="0" max="6" step="1" value="0">
+                                    <span class="mixer-val" id="gui-val-boost">0dB</span>
+                                </div>
+                            </div>
+                            
+                            <div class="gui-mixer-presets">
+                                <span class="mixer-label">SOUND PROFILES</span>
+                                <div class="preset-pill-row">
+                                    <button class="gui-pill-btn" data-preset="flat">FLAT</button>
+                                    <button class="gui-pill-btn" data-preset="bassboost">BASS_BOOST</button>
+                                    <button class="gui-pill-btn" data-preset="vocal">VOCAL_BOOST</button>
+                                    <button class="gui-pill-btn" data-preset="hall">CONCERT_HALL</button>
+                                </div>
+                            </div>
+
+                            <div class="gui-mixer-presets">
+                                <span class="mixer-label">DECK STREAM QUALITY</span>
+                                <div class="preset-pill-row">
+                                    <button class="gui-pill-btn" id="gui-q-320" onclick="window.selectQuality('320kbps')">320K HIFI</button>
+                                    <button class="gui-pill-btn" id="gui-q-160" onclick="window.selectQuality('160kbps')">160K MID</button>
+                                    <button class="gui-pill-btn" id="gui-q-96" onclick="window.selectQuality('96kbps')">96K ECO</button>
+                                </div>
+                            </div>
+
+                            <div class="gui-mixer-presets">
+                                <span class="mixer-label">SYSTEM & BOOT PREFERENCES</span>
+                                <div class="preset-pill-row">
+                                    <button class="gui-pill-btn" id="gui-btn-remember-choice" onclick="App.toggleRememberPreference()" title="Toggle Auto-boot preference">AUTO-BOOT: ENABLED</button>
+                                    <button class="gui-pill-btn" onclick="App.resetBootChoice()" title="Clear choices and show splash Boot selector">SHOW BOOT SCREEN</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Playlist Tracklist Sub-panel (Discover Tab Overlay) -->
+                    <div id="gui-playlist-tracklist" class="gui-playlist-tracklist hidden">
+                        <!-- Dynamic tracklist content injected here -->
+                    </div>
+
+                    <!-- Hidden Search Results Sub-panel -->
+                    <div class="gui-results-feed hidden" id="gui-search-results">
+                        <!-- Dynamic search results content injected here -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Column: Now Playing Sidebar -->
+            <aside class="gui-now-playing-sidebar">
+                <div class="sidebar-nowplaying-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding: 0 10px;">
+                    <h2 style="font-size: 18px; font-weight: 600; color: #fff;">Now playing</h2>
+                    <a href="#" class="sidebar-view-all" onclick="App.switchGuiTab('vault'); return false;" style="color: var(--dim); font-size: 14px; text-decoration: none;">View all</a>
+                </div>
+
+                <!-- Next Up Compact Queue list section (Functions as Now Playing list) -->
+                <div class="sidebar-nextup-section">
+                    <div class="compact-queue-list" id="gui-sidebar-queue-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="gui-panel-empty-text">No upcoming tracks</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Bottom Persistent Playbar -->
+            <footer class="gui-persistent-playbar">
+                <!-- Playbar Left: Artwork and Song Metadata -->
+                <div class="playbar-left">
+                    <div class="playbar-album-art-wrap">
+                        <img id="gui-album-art" src="logo.svg" alt="Album Art">
+                    </div>
+                    <div class="playbar-track-details">
+                        <h2 id="gui-song-title" class="playbar-track-title">Select a Track</h2>
+                        <h3 id="gui-song-artist" class="playbar-track-artist">No song playing</h3>
+                        <span class="playbar-source-badge" id="gui-source-badge">SAAVN</span>
+                    </div>
+                    <button class="playbar-heart-btn" id="gui-btn-like" onclick="Player.likeCurrent()" title="Like Song">🖤</button>
+                </div>
+
+                <!-- Playbar Center: Timeline Seeker & Playback controls -->
+                <div class="playbar-center">
+                    <div class="playbar-playback-controls">
+                        <button class="playbar-btn playbar-ctrl-btn" id="gui-btn-shuf" onclick="Player.toggleShuffle()" title="Shuffle">🔀</button>
+                        <button class="playbar-btn playbar-ctrl-btn" onclick="Player.prev()" title="Prev">⏮</button>
+                        <button class="playbar-btn playbar-play-btn" id="gui-btn-play" onclick="Player.togglePause()" title="Play/Pause">▶</button>
+                        <button class="playbar-btn playbar-ctrl-btn" onclick="Player.next()" title="Next">⏭</button>
+                        <button class="playbar-btn playbar-ctrl-btn" id="gui-btn-rep" onclick="Player.toggleRepeat()" title="Repeat">🔁</button>
+                    </div>
+
+                    <div class="playbar-timeline-container">
+                        <span class="playbar-timeline-time" id="gui-time-current">0:00</span>
+                        <div class="playbar-seek-bar-wrap">
+                            <input type="range" id="gui-seek-slider" min="0" max="100" value="0" class="playbar-seeker">
+                            <div class="playbar-seek-progress" id="gui-seek-progress-fill"></div>
+                        </div>
+                        <span class="playbar-timeline-time" id="gui-time-total">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Playbar Right: Volume & Autoplay preferences -->
+                <div class="playbar-right">
+                    <button class="playbar-pill-btn" id="gui-btn-autoplay" onclick="Commands.handle('autoplay')">RADIO: OFF</button>
+                    <div class="playbar-volume-container">
+                        <span class="playbar-vol-icon">🔊</span>
+                        <input type="range" id="gui-vol-slider" min="0" max="100" value="100" class="playbar-vol-bar" oninput="Player.setVolume(this.value)">
+                        <span class="playbar-vol-value" id="gui-vol-val">100%</span>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
