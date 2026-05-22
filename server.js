@@ -33,6 +33,8 @@ const SAAVN_BASES = [
 
 // Invidious instances for YouTube search
 const INVIDIOUS_BASES = [
+    'https://invidious.flokinet.to',
+    'https://inv.tux.pizza',
     'https://invidious.privacyredirect.com',
     'https://yt.cdaut.de',
     'https://invidious.nerdvpn.de',
@@ -116,18 +118,9 @@ const requestHandler = async (req, res) => {
         
         let ok = false;
         if (sub.includes('search/songs')) {
-            // Try saavnapi-nine
-            ok = await proxyRequest(`/result/${qs}`, ['https://saavnapi-nine.vercel.app'], res);
-            if (!ok) {
-                console.log('  [PROXY FAILOVER Node] Trying jiosaavn-api-2 fallback...');
-                ok = await proxyRequest(`/search/songs${qs}`, ['https://jiosaavn-api-2.vercel.app'], res);
-            }
+            ok = await proxyRequest(`/search/songs${qs}`, SAAVN_BASES, res);
         } else {
-            ok = await proxyRequest(`${sub}${qs}`, ['https://saavnapi-nine.vercel.app'], res);
-            if (!ok) {
-                console.log('  [PROXY FAILOVER Node] Trying jiosaavn-api-2 fallback...');
-                ok = await proxyRequest(`${sub}${qs}`, ['https://jiosaavn-api-2.vercel.app'], res);
-            }
+            ok = await proxyRequest(`${sub}${qs}`, SAAVN_BASES, res);
         }
         
         if (!ok) {
