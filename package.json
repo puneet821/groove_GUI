@@ -2,9 +2,8 @@
   "name": "groovecmd",
   "version": "1.0.0",
   "description": "Terminal Music Player - Responsive Mobile Edition",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "dev": "node server.js",
     "android:init": "npm install && npx cap init GROOVECMD com.puneet.groovecmd --web-dir=. && npx cap add android",
     "android:sync": "npx cap sync",
     "android:open": "npx cap open android"
