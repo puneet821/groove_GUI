@@ -99,7 +99,7 @@ function serveStatic(pathname, res) {
     });
 }
 
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
     const parsed   = url.parse(req.url, true);
     const pathname = parsed.pathname;
 
@@ -260,16 +260,21 @@ const server = http.createServer(async (req, res) => {
 
     // Serve static files
     serveStatic(pathname, res);
-});
+};
 
-server.listen(PORT, () => {
-    console.log('');
-    console.log('  ╔══════════════════════════════════════╗');
-    console.log('  ║   GROOVECMD Server  —  Running!      ║');
-    console.log(`  ║   http://localhost:${PORT}              ║`);
-    console.log('  ╚══════════════════════════════════════╝');
-    console.log('');
-    console.log('  Open http://localhost:3030 in your browser');
-    console.log('  Press Ctrl+C to stop');
-    console.log('');
-});
+if (require.main === module) {
+    const server = http.createServer(requestHandler);
+    server.listen(PORT, () => {
+        console.log('');
+        console.log('  ╔══════════════════════════════════════╗');
+        console.log('  ║   GROOVECMD Server  —  Running!      ║');
+        console.log(`  ║   http://localhost:${PORT}              ║`);
+        console.log('  ╚══════════════════════════════════════╝');
+        console.log('');
+        console.log('  Open http://localhost:3030 in your browser');
+        console.log('  Press Ctrl+C to stop');
+        console.log('');
+    });
+}
+
+module.exports = requestHandler;
