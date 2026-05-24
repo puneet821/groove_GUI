@@ -2712,96 +2712,99 @@ body.theme-ghost .song-card-queue-btn  { border-color: rgba(255, 255, 255, 0.2);
 .cassette-list-item {
     display: flex;
     align-items: center;
-    background: rgba(4, 10, 4, 0.2);
-    border: 1px solid rgba(0, 255, 65, 0.05);
-    border-radius: 8px;
-    padding: 10px 16px;
-    gap: 15px;
-    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    gap: 16px;
+    transition: background-color 0.2s ease;
 }
 
 .cassette-list-item:hover {
-    background: rgba(0, 255, 65, 0.03);
-    border-color: rgba(0, 255, 65, 0.2);
-    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .item-num {
-    font-size: 13px;
-    color: var(--primary-dim);
-    font-weight: 700;
-    width: 20px;
+    font-size: 16px;
+    color: #b3b3b3;
+    font-weight: 400;
+    width: 24px;
+    text-align: right;
+    margin-right: 8px;
 }
 
 .item-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     overflow: hidden;
 }
 
 .item-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--white);
+    font-size: 16px;
+    font-weight: 400;
+    color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.cassette-list-item:hover .item-title {
-    color: var(--primary-glow);
-    text-shadow: var(--glow-text);
 }
 
 .item-artist {
-    font-size: 11px;
-    color: var(--primary-dim);
+    font-size: 14px;
+    font-weight: 400;
+    color: #b3b3b3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+.item-src-badge.tag-spotify {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #b3b3b3;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+}
+
 .action-btn-play {
-    background: var(--primary-dim);
-    color: var(--bg);
-    border: 1px solid var(--primary);
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     font-family: var(--font);
-    font-size: 11px;
-    font-weight: bold;
-    padding: 6px 14px;
-    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 30px;
     cursor: pointer;
     transition: all 0.2s ease;
     outline: none;
 }
 
 .action-btn-play:hover {
-    background: var(--primary-glow);
-    color: var(--bg);
-    box-shadow: var(--glow);
-    transform: scale(1.05);
+    border-color: #ffffff;
+    transform: scale(1.04);
 }
 
 .action-btn-queue {
     background: transparent;
-    border: 1px solid var(--primary-dim);
-    color: var(--primary-dim);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
     font-family: var(--font);
-    font-size: 11px;
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 30px;
     cursor: pointer;
     transition: all 0.2s ease;
     outline: none;
 }
 
 .action-btn-queue:hover {
-    border-color: var(--primary-glow);
-    color: var(--primary-glow);
-    background: rgba(0, 255, 65, 0.05);
+    border-color: #ffffff;
+    transform: scale(1.04);
 }
 
 /* Responsive adjustments */
