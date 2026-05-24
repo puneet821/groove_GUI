@@ -846,6 +846,8 @@ html, body {
     border: none;
     box-shadow: none;
     font-family: 'Poppins', sans-serif !important;
+    position: relative;
+    z-index: 2;
 }
 
 body.mode-gui #main-container,
