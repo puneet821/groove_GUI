@@ -14,9 +14,9 @@
     --magenta:      #d946ef; /* Vibrant purple/pink */
     
     /* Typography */
-    --white:        #F5F7FA; /* Primary text */
-    --dim:          #B8C0CC; /* Secondary text */
-    --muted:        #8D96A5; /* Muted text */
+    --white:        #ffffff; /* Pure white primary text */
+    --dim:          #e2e8f0; /* Bright off-white secondary text */
+    --muted:        #cbd5e1; /* Lighter muted text */
     
     /* Surfaces */
     --bg:           #111315; /* Main background */
